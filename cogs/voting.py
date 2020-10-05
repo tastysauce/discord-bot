@@ -5,6 +5,7 @@ class VotingCog(commands.Cog, name="Voting"):
 
 	def __init__(self, bot):
 		self.bot = bot
+		print("Initialized Voting")
 
 	CURRENT_VOTES = {}
 

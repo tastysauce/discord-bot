@@ -9,7 +9,7 @@ class SpiceCog(commands.Cog, name="Spice"):
 	SPICE_TERRIBLE_DELTA = 1.25
 	SPICE_LEVEL = 0 #initially 0 and incremented when someone trips the array
 	SPICE_DECREMENT_INTERVAL = 300 # 5 minutes in seconds
-	
+
 	SPICE_CHAMPS = {}
 	ARRAY_OF_TERRIBLE_WORDS = ["1080p", "1440p", "1080", "1440", "144hz", "144", "90", "90hz", "clown", ":90hz:", "fake", "blm", "trump", "antifa", "alt f4", "altf4", "f4", "intel", "nvidia", "amd"]
 	ARRAY_OF_BAD_WORDS = ["anal","anus","arse","ass","ballsack","balls","bastard","bitch","biatch","bloody","blowjob","blow" "job","bollock","bollok","boner","butt","buttplug","clitoris","cock","coon","crap","cunt","damn","dick","dildo","dyke","fag","feck","fellate","fellatio","felching","fuck","fudgepacker","fudge" "packer","flange","Goddamn","hell","homo","jerk","jizz","knobend","knob" "end","muff","nigger","nigga","omg","penis","piss","poop","prick","pube","pussy","queer","scrotum","sex","shit","sh1t","slut","smegma","spunk","tit","tosser","turd","twat","vagina","wank","whore"]
@@ -17,6 +17,7 @@ class SpiceCog(commands.Cog, name="Spice"):
 
 	def __init__(self, bot):
 		self.bot = bot
+		print("Initialized Spice")
 
 	# Spicy meter
 
