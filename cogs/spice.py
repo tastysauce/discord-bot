@@ -60,10 +60,10 @@ class SpiceCog(commands.Cog, name="Spice"):
 
 		taskList = []
 		for champ in self.champsToMute:
-		 	task = asyncio.ensure_future(self.muteTarget(ctx, champ, 5))
+		 	task = asyncio.ensure_future(self.muteTarget(ctx, champ, 300))
 
 	async def muteTarget(self, ctx, champ, duration):
-			await ctx.send("Timing out " + champ.name + " for 10 minutes")
+			await ctx.send("Timing out " + champ.name + " for 5 minutes")
 			mutedRole = discord.utils.get(champ.guild.roles, name="muted")
 			await champ.add_roles(mutedRole)
 			await asyncio.sleep(duration)
