@@ -1,6 +1,7 @@
 import discord
 import asyncio
 import emoji
+import csv
 from discord.ext import commands
 
 class SpiceCog(commands.Cog, name="Spice"):
@@ -11,13 +12,25 @@ class SpiceCog(commands.Cog, name="Spice"):
 	spiceDecrementInterval = 300 # 5 minutes in seconds
 
 	spiceChamps = {}
-	terribleWords = ["1080p", "1440p", "1080", "1440", "144hz", "144", "90", "90hz", "clown", ":90hz:", "fake", "blm", "trump", "antifa", "alt f4", "altf4", "f4", "intel", "nvidia", "amd"]
-	badWords = ["anal","anus","arse","ass","ballsack","balls","bastard","bitch","biatch","bloody","blowjob","blow" "job","bollock","bollok","boner","butt","buttplug","clitoris","cock","coon","crap","cunt","damn","dick","dildo","dyke","fag","feck","fellate","fellatio","felching","fuck","fudgepacker","fudge" "packer","flange","Goddamn","hell","homo","jerk","jizz","knobend","knob" "end","muff","nigger","nigga","omg","penis","piss","poop","prick","pube","pussy","queer","scrotum","sex","shit","sh1t","slut","smegma","spunk","tit","tosser","turd","twat","vagina","wank","whore"]
+	terribleWords = []
+	badWords = []
 	spiceChampToMute = ""
 
 	def __init__(self, bot):
 		self.bot = bot
+		self.loadWordsFromDisk()
 		print("Initialized Spice")
+
+	def loadWordsFromDisk(self):
+		with open("badWords.csv", newline='') as csvFile:
+			reader = csv.reader(csvFile, delimiter=",")
+			for row in reader:
+				self.badWords = row
+		with open("terribleWords.csv", newline='') as csvFile:
+			reader = csv.reader(csvFile, delimiter=",")
+			for row in reader:
+				self.terribleWords = row
+		print(self.terribleWords)
 
 	# Spicy meter
 
