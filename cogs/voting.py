@@ -85,28 +85,5 @@ class VotingCog(commands.Cog, name="Voting"):
 					await ctx.send(member.name + " is free again!")
 					currentVotes.pop(channel, None)
 
-	# @commands.has_role("botmancer")
-	@commands.command(name="yup", help="mutes the champ")
-	async def muteTheChamp(self, ctx):
-
-		if self.spiceChampToMute == "":
-			return
-
-		member = self.spiceChampToMute
-		# clear out the champ to mute and reset their level
-		self.spiceChampToMute = ""
-		self.spiceChamps[member] = 0
-
-	 	# mute em
-		await ctx.send("Timing out " + member.name + " for 10 minutes")
-		mutedRole = discord.utils.get(member.guild.roles, name="muted")
-		await member.add_roles(mutedRole)
-		await member.edit(mute=True)
-		await asyncio.sleep(600)
-
-		await ctx.send(member.name + " is very calm now")
-		await member.remove_roles(mutedRole)
-		await member.edit(mute=False)
-
 def setup(bot):
 	bot.add_cog(VotingCog(bot))

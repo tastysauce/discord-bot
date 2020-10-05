@@ -11,10 +11,12 @@ class SpiceCog(commands.Cog, name="Spice"):
 	spiceLevel = 0 #initially 0 and incremented when someone trips the array
 	spiceDecrementInterval = 300 # 5 minutes in seconds
 
-	spiceChamps = {}
 	terribleWords = []
 	badWords = []
-	spiceChampToMute = ""
+
+	spiceChamps = {}
+	champsThatHaveBeenWarned = []
+	champsToMute = []
 
 	def __init__(self, bot):
 		self.bot = bot
@@ -30,7 +32,6 @@ class SpiceCog(commands.Cog, name="Spice"):
 			reader = csv.reader(csvFile, delimiter=",")
 			for row in reader:
 				self.terribleWords = row
-		print(self.terribleWords)
 
 	# Spicy meter
 
@@ -49,6 +50,30 @@ class SpiceCog(commands.Cog, name="Spice"):
 			levelToDisplay = round(self.spiceChamps[member])
 
 		await ctx.channel.send(member.name + "'s spice level: " + self.spiceLevelToEmoji(levelToDisplay))
+
+	@commands.command(name="yup", help="mutes the champs")
+	async def muteTheChamp(self, ctx):
+
+		if len(self.champsToMute) == 0:
+			print("nobody to mute")
+			return
+
+		taskList = []
+		for champ in self.champsToMute:
+		 	task = asyncio.ensure_future(self.muteTarget(ctx, champ, 5))
+
+	async def muteTarget(self, ctx, champ, duration):
+			await ctx.send("Timing out " + champ.name + " for 10 minutes")
+			mutedRole = discord.utils.get(champ.guild.roles, name="muted")
+			await champ.add_roles(mutedRole)
+			await asyncio.sleep(duration)
+
+			await ctx.send(champ.name + " is very calm now")
+			await champ.remove_roles(mutedRole)
+
+			self.spiceChamps.pop(champ, None)
+			self.champsToMute.remove(champ)
+			self.champsThatHaveBeenWarned.remove(champ)
 
 	@commands.Cog.listener()
 	async def on_message(self, message):
@@ -107,14 +132,27 @@ class SpiceCog(commands.Cog, name="Spice"):
 
 		# round the level so people can't swear once and achieve pepper status
 		# show the new level of someone's having a bad day
-		if round(levelToDisplay) == 3:
-			await message.channel.send(message.author.name + " spice level: " + spiceLevelToEmoji(levelToDisplay))
+		if round(levelToDisplay) >= 3 and round(levelToDisplay) <= 5 and not message.author in self.champsThatHaveBeenWarned:
+			await message.channel.send(message.author.name + " spice level: " + self.spiceLevelToEmoji(levelToDisplay))
 
-		if levelToDisplay >= 5 and self.spiceChampToMute == "":
-			await message.channel.send("MUTE THE SPICE CHAMP?? Type !yup to mute " + message.author.name)
-			self.spiceChampToMute = message.author
-		else: 
-			self.spiceChampToMute = ""
+		await self.checkToMuteChamps(message)
+
+	async def checkToMuteChamps(self, message):
+
+		lengthOfWarnings = len(self.champsThatHaveBeenWarned)
+		listOfChampNames = []
+
+		for champ in self.spiceChamps.keys():
+			if self.spiceChamps[champ] >= 5:
+				listOfChampNames.append(champ.name)
+				if not champ in self.champsToMute:
+					self.champsToMute.append(champ)
+				if not champ in self.champsThatHaveBeenWarned:
+					self.champsThatHaveBeenWarned.append(champ)
+
+		if len(self.champsThatHaveBeenWarned) > lengthOfWarnings:
+			messageToSend = "Type !yup to mute the current champs: "  + ", ".join(listOfChampNames)
+			await message.channel.send(messageToSend)
 
 	def spiceLevelToEmoji(self, level: int):
 		currentLevel = 0
@@ -144,6 +182,7 @@ class SpiceCog(commands.Cog, name="Spice"):
 			if self.spiceLevel <= 0:
 				self.spiceLevel = 0
 				self.spiceChamps = {}
+				self.spiceChampToMute = []
 
 def setup(bot):
 	bot.add_cog(SpiceCog(bot))
