@@ -19,6 +19,7 @@ load_dotenv()
 # GLOBAL VARIABLES LOL
 TOKEN = os.getenv("DISCORD_TOKEN")
 BOT_CHANNEL_ID = 762411266860908574
+GENERAL_CHANNEL_ID = 741442223736094802
 SPICE_DELTA = 0.5
 SPICE_TERRIBLE_DELTA = 1.25
 SPICE_LEVEL = 0 #initially 0 and incremented when someone trips the array
@@ -80,6 +81,98 @@ async def mute(ctx, target, duration: int):
 	await member.edit(mute=False)
 	await ctx.send(member.name + " is free again. They served " + str(duration) + " seconds")
 
+CURRENT_VOTES = {}
+
+@bot.command(name="vote")
+async def voteVoice(ctx, target):
+	global CURRENT_VOTES
+	# Get current voice channel where vote originated from
+	channel = ctx.author.voice.channel
+	target = target.strip("<!@>")
+	member = await commands.MemberConverter().convert(ctx, target)
+
+	# Check if there's already a vote for this channel
+	if channel in CURRENT_VOTES:
+		await ctx.channel.send("There's already a vote for " + channel.name)
+		return
+
+	# add empty array of votes
+	CURRENT_VOTES[channel] = {}
+	# Get the member count of that channel
+	channelMembersCount = len(channel.members)
+
+	if channelMembersCount <= 2:
+		await ctx.channel.send("Can't start a vote with " + channelMembersCount + " people")
+		return
+
+	requiredToMute = round(channelMembersCount / 2)
+	CURRENT_VOTES[channel]["REQUIRED_TO_MUTE"] = requiredToMute
+	CURRENT_VOTES[channel]["TARGET"] = member
+
+	await ctx.channel.send("Mute " + member.name + " in " + channel.name + "? " + str(requiredToMute) + " votes required.")
+	await ctx.channel.send("Vote !yes or !no")
+
+	await asyncio.sleep(60)
+	if channel in CURRENT_VOTES:
+		await ctx.channel.send("Vote to mute " + member.name + " timed out after 1 minute")
+		CURRENT_VOTES.pop(channel, None)
+ 
+
+@bot.command(name="yes")
+async def voteYes(ctx):
+	global CURRENT_VOTES
+	channel = ctx.author.voice.channel
+	if channel in CURRENT_VOTES:
+		CURRENT_VOTES[channel][ctx.author] = "yes"
+		await checkVotes(ctx)
+
+@bot.command(name="no")
+async def voteYes(ctx):
+	global CURRENT_VOTES
+	channel = ctx.author.voice.channel
+	if channel in CURRENT_VOTES:
+		CURRENT_VOTES[channel][ctx.author] = "no"
+		await checkVotes(ctx)
+
+async def checkVotes(ctx):
+	global CURRENT_VOTES
+	channel = ctx.author.voice.channel
+	if channel in CURRENT_VOTES:
+		member = CURRENT_VOTES[channel]["TARGET"]
+		keys = CURRENT_VOTES[channel].keys()
+		if len(keys) < CURRENT_VOTES[channel]["REQUIRED_TO_MUTE"]:
+			return
+		else:
+			yesVotes = 0
+			for key in keys:
+				if CURRENT_VOTES[channel][key] == "yes":
+					yesVotes = yesVotes + 1
+			if yesVotes >= CURRENT_VOTES[channel]["REQUIRED_TO_MUTE"]:
+				await ctx.send("Muting " + member.name + " for 2 minutes")
+				await member.edit(mute=True)
+				mutedRole = discord.utils.get(member.guild.roles, name="muted")
+				await member.add_roles(mutedRole)
+
+				# Unmute after duration
+				# not sure what stacking up mutes will do.  probably disasterous
+				await asyncio.sleep(120)
+				await member.edit(mute=False)
+				await member.remove_roles(mutedRole)
+				await ctx.send(member.name + " is free again!")
+				CURRENT_VOTES.pop(channel, None)
+
+@bot.command(name="level")
+async def level(ctx, target):
+	global SPICE_CHAMPS
+	target = target.strip("<!@>")
+	member = await commands.MemberConverter().convert(ctx, target)
+
+	levelToDisplay = 0
+	if member in SPICE_CHAMPS:
+		levelToDisplay = round(SPICE_CHAMPS[member])
+
+	await ctx.channel.send(member.name + "'s spice level: " + spiceLevelToEmoji(levelToDisplay))
+
 # @commands.has_role("botmancer")
 @bot.command(name="yup", help="mutes the champ")
 async def muteTheChamp(ctx):
@@ -136,7 +229,6 @@ async def periodicallyDecrementSpice(timeout):
 	while True:
 		await asyncio.sleep(timeout)
 		if SPICE_LEVEL > 0:
-			await bot.get_channel(BOT_CHANNEL_ID).send("spice level is cooling down: " + spiceLevelToEmoji(SPICE_LEVEL))
 			SPICE_LEVEL = SPICE_LEVEL - 1
 		if SPICE_LEVEL < 0:
 			SPICE_LEVEL = 0
@@ -163,7 +255,7 @@ async def on_message(message):
 	levelToDisplay = 0
 
 	for badWord in ARRAY_OF_BAD_WORDS:
-		if badWord in message.content:
+		if badWord in message.content.split():
 
 			#increment spice level and record name of edgy spice champ
 			SPICE_LEVEL = SPICE_LEVEL + SPICE_DELTA
@@ -185,7 +277,7 @@ async def on_message(message):
 
 	# but what if it's a terrible word
 	for terribleWord in ARRAY_OF_TERRIBLE_WORDS:
-		if terribleWord in message.content:
+		if terribleWord in message.content.split():
 
 			#increment spice level and record name of edgy spice champ
 			SPICE_LEVEL = SPICE_LEVEL + SPICE_TERRIBLE_DELTA
@@ -207,7 +299,7 @@ async def on_message(message):
 
 	# round the level so people can't swear once and achieve pepper status
 	# show the new level of someone's having a bad day
-	if levelToDisplay > 0:
+	if round(levelToDisplay) == 3:
 		await message.channel.send(message.author.name + " spice level: " + spiceLevelToEmoji(levelToDisplay))
 
 	if levelToDisplay >= 5:
