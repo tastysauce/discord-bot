@@ -20,7 +20,6 @@ intents.messages = True
 intents.guilds = True
 intents.guild_messages = True
 bot = commands.Bot(intents=intents, command_prefix="!")
-bot.run(os.getenv("DISCORD_TOKEN"))
 
 
 # -------------------
@@ -325,6 +324,7 @@ async def on_command_error(ctx, error):
 	else:
 		print(error)
 
+bot.run(os.getenv("DISCORD_TOKEN"))
 
 
 
