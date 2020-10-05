@@ -22,12 +22,15 @@ BOT_CHANNEL_ID = 762411266860908574
 SPICE_DELTA = 0.5
 SPICE_TERRIBLE_DELTA = 1.25
 SPICE_LEVEL = 0 #initially 0 and incremented when someone trips the array
-SPICE_DECREMENT_INTERVAL = 600 # ten minutes in seconds
+SPICE_DECREMENT_INTERVAL = 300 # ten minutes in seconds
 SPICE_CHAMPS = {}
 ARRAY_OF_TERRIBLE_WORDS = ["1080p", "1440p", "1080", "1440", "144hz", "144", "90", "90hz", "clown", ":90hz:", "fake", "blm", "trump", "antifa", "alt f4", "altf4", "f4", "intel", "nvidia", "amd"]
 ARRAY_OF_BAD_WORDS = ["anal","anus","arse","ass","ballsack","balls","bastard","bitch","biatch","bloody","blowjob","blow" "job","bollock","bollok","boner","butt","buttplug","clitoris","cock","coon","crap","cunt","damn","dick","dildo","dyke","fag","feck","fellate","fellatio","felching","fuck","fudgepacker","fudge" "packer","flange","Goddamn","hell","homo","jerk","jizz","knobend","knob" "end","muff","nigger","nigga","omg","penis","piss","poop","prick","pube","pussy","queer","scrotum","sex","shit","sh1t","slut","smegma","spunk","tit","tosser","turd","twat","vagina","wank","whore"]
 
 SPICE_CHAMP_TO_MUTE = ""
+
+
+# ADD LEADERBOARD and LATEST commands
 
 
 # Load bot (subclass of Client) and make sure it has the intents that can read members or it can't do shit
@@ -205,8 +208,7 @@ async def on_message(message):
 	# round the level so people can't swear once and achieve pepper status
 	# show the new level of someone's having a bad day
 	if levelToDisplay > 0:
-		await message.channel.send(message.author.name + " is HEATING UP: " + spiceLevelToEmoji(levelToDisplay))
-		await message.channel.send("channel spice level: " + spiceLevelToEmoji(SPICE_LEVEL))
+		await message.channel.send(message.author.name + " spice level: " + spiceLevelToEmoji(levelToDisplay))
 
 	if levelToDisplay >= 5:
 		await message.channel.send("MUTE THE SPICE CHAMP?? Type !yup to mute " + message.author.name)
