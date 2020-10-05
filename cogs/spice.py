@@ -97,7 +97,7 @@ class SpiceCog(commands.Cog, name="Spice"):
 		if round(levelToDisplay) == 3:
 			await message.channel.send(message.author.name + " spice level: " + spiceLevelToEmoji(levelToDisplay))
 
-		if levelToDisplay >= 5:
+		if levelToDisplay >= 5 and self.SPICE_CHAMP_TO_MUTE == "":
 			await message.channel.send("MUTE THE SPICE CHAMP?? Type !yup to mute " + message.author.name)
 			self.SPICE_CHAMP_TO_MUTE = message.author
 		else: 
