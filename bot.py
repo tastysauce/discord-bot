@@ -8,16 +8,25 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from discord.ext.commands import has_permissions
 
+load_dotenv()
+
+# ----------
+# Bot config
+# ----------
+
 intents = discord.Intents.default()
 intents.members = True
 intents.messages = True
 intents.guilds = True
 intents.guild_messages = True
+bot = commands.Bot(intents=intents, command_prefix="!")
+bot.run(os.getenv("DISCORD_TOKEN"))
 
-load_dotenv()
 
-# GLOBAL VARIABLES LOL
-TOKEN = os.getenv("DISCORD_TOKEN")
+# -------------------
+# Globals (tech debt)
+# -------------------
+
 BOT_CHANNEL_ID = 762411266860908574
 GENERAL_CHANNEL_ID = 741442223736094802
 SPICE_DELTA = 0.5
@@ -33,14 +42,9 @@ SPICE_CHAMP_TO_MUTE = ""
 
 # ADD LEADERBOARD and LATEST commands
 
-
-# Load bot (subclass of Client) and make sure it has the intents that can read members or it can't do shit
-bot = commands.Bot(intents=intents, command_prefix="!")
-
-
-# ---
-# Bot commands followed by event listeners
-# ---
+# ------------
+# Bot commands
+# ------------
 
 @bot.command(name="toggleMute", help="toggles mute on the target")
 @commands.has_role("botmancer")
@@ -197,9 +201,9 @@ async def muteTheChamp(ctx):
 	await member.remove_roles(mutedRole)
 	await member.edit(mute=False)
 
-# ---
+# ----------------
 # Event monitoring
-# ---
+# ----------------
 
 @bot.event
 async def on_ready():
@@ -320,9 +324,6 @@ async def on_command_error(ctx, error):
 		await ctx.send(error)
 	else:
 		print(error)
-
-
-bot.run(TOKEN)
 
 
 
