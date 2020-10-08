@@ -7,10 +7,10 @@ class ShittyCommands(commands.Cog, name="Shitty Commands"):
 
 	def __init__(self, bot):
 		self.bot = bot
+		print("Initialized ShittyCommands")
 
 	# list of members
 	shittyMutedUsers = []
-
 	# member, target
 	shittyMutesInProgress = {}
 
