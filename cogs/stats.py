@@ -87,7 +87,7 @@ class StatsCog(commands.Cog, name="Stats"):
         print("Initializing stats")
         for guild in self.bot.guilds:
             self.stats[guild.id] = {}
-            print("Adding server: " + guild.name + " with id: " + guild.id)
+            print("Adding server: " + guild.name + " with id: " + str(guild.id)
 
             for member in guild.members:
                 print("Adding " + member.name + " to " + guild.name)
@@ -111,7 +111,7 @@ class StatsCog(commands.Cog, name="Stats"):
         target = target.strip("<!@>")
         target = await commands.MemberConverter().convert(context, target)
         targetStats = self.stats[target.guild.id][target.id]
-        stats = "Stats for **" + target.name + "**:" + "(id: " + target.id + ")\n"
+        stats = "Stats for **" + target.name + "**:" + "(id: " + str(target.id) + ")\n"
         for key, value in targetStats.items():
             stats = stats + (key + ": **" + str(value)) + "**\n"
         await context.send(stats)
