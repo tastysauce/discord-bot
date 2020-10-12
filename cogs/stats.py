@@ -65,30 +65,36 @@ class StatsCog(commands.Cog, name="Stats"):
     async def checkForNewGuildsAndMembers(self):
         print("Checking for new servers or members")
         # See if the bot is in guilds that we aren't tracking yet
+        print("Existing keys " + str(self.stats.keys()))
         for guild in self.bot.guilds:
             # Add new guild
-            if not guild.id in self.stats.keys():
-                print("Found new guild: " + guild.name)
-                self.stats[guild.id] = self.getDefaultDictionary()
+            guildIDString = str(guild.id)
+            if not guildIDString in self.stats.keys():
+                print("Found new guild: " + guildIDString)
+                self.stats[guildIDString] = self.getDefaultDictionary()
                 for member in guild.members:
-                    self.stats[guild.id][member.id] = self.getDefaultDictionary()
+                    memberIDString = str(member.id)
+                    self.stats[guildIDString][memberIDString] = self.getDefaultDictionary()
             # Check members
             else:
                 for member in guild.members:
-                    if not member.id in self.stats[guild.id].keys():
+                    memberIDString = str(member.id)
+                    if not memberIDString in self.stats[guildIDString].keys():
                         print("Found new member, " + member.name + ", in " + guild.name)
-                        self.stats[guild.id][member.id] = self.getDefaultDictionary()
+                        self.stats[guildIDString][memberIDString] = self.getDefaultDictionary()
         print("Completed new server and member check")
 
     async def createNewStatsFile(self):
         print("Initializing stats")
         for guild in self.bot.guilds:
-            self.stats[guild.id] = {}
+            guildIDString = str(guild.id)
+            self.stats[guildIDString] = {}
             print("Adding server: " + guild.name + " with id: " + str(guild.id))
 
             for member in guild.members:
+                memberIDString = str(member.id)
                 print("Adding " + member.name + " to " + guild.name)
-                self.stats[guild.id][member.id] = self.getDefaultDictionary()
+                self.stats[guildIDString][memberIDString] = self.getDefaultDictionary()
 
         await self.writeToDisk()
         print("Completed initializing stats")
@@ -107,7 +113,7 @@ class StatsCog(commands.Cog, name="Stats"):
     async def statsFor(self, context, target):
         target = target.strip("<!@>")
         target = await commands.MemberConverter().convert(context, target)
-        targetStats = self.stats[target.guild.id][target.id]
+        targetStats = self.stats[str(target.guild.id)][str(target.id)]
         stats = "Stats for **" + target.name + "**:" + " *(id: " + str(target.id) + ")*\n"
         for key, value in targetStats.items():
             stats = stats + (key + ": **" + str(value)) + "**\n"
@@ -136,8 +142,8 @@ class StatsCog(commands.Cog, name="Stats"):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        memberID = message.author.id
-        guildID = message.author.guild.id
+        memberID = str(message.author.id)
+        guildID = str(message.author.guild.id)
 
         # last message
         self.stats[guildID][memberID][self.LAST_MESSAGE] = datetime.now().strftime(self.TIME_FORMAT)
@@ -160,28 +166,28 @@ class StatsCog(commands.Cog, name="Stats"):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         print("New member named " + member.name + " joined the " + member.guild.name + " server")
-        if not member.id in self.stats[member.guild.id].keys():
+        if not str(member.id) in self.stats[str(member.guild.id)].keys():
             print("Added record for " + member.name + " in the " + member.guild.name + " server")
-            self.stats[member.guild.id][member.id] = self.getDefaultDictionary()
+            self.stats[str(member.guild.id)][str(member.id)] = self.getDefaultDictionary()
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         print("We've joined a new guild named " + guild.name)
-        if not member.id in self.stats[member.guild.id].keys():
+        if not str(member.id) in self.stats[str(member.guild.id)].keys():
             print("Added record for " + guild.name)
-            self.stats[guild.id] = {}
+            self.stats[str(guild.id)] = {}
             for member in guild.members:
-                self.stats[guild.id][member.id] = self.getDefaultDictionary()
+                self.stats[str(guild.id)][str(member.id)] = self.getDefaultDictionary()
 
     # other modules can access this
     async def setValueForKey(self, member, key, value):
         print("Setting " + key + " to " + str(value) + " for " + member.name + " in " + member.guild.name)
-        self.stats[member.guild.id][member.id][key] = value
+        self.stats[str(member.guild.id)][str(member.id)][key] = value
 
     # other modules can access this
     async def getValueForKey(self, member, key):
         print("Getting " + key + " for " + member.name + " in " + member.guild.name + ": " + str(self.stats[member.guild.id][member.id][key]))
-        return self.stats[member.guild.id][member.id][key]
+        return self.stats[str(member.guild.id)][str(member.id)][key]
 
 
 def setup(bot):
