@@ -69,34 +69,29 @@ class StatsCog(commands.Cog, name="Stats"):
             # Add new guild
             if not guild.name in self.stats.keys():
                 print("Found new guild: " + guild.name)
-                self.stats[guild.name] = self.getDefaultDictionary()
+                self.stats[guild.id] = self.getDefaultDictionary()
                 for member in guild.members:
                     # don't record stats for our bot
                     # if memberName == self.bot.user.name:
                     #     continue
-                    self.stats[guild.name][member.name] = self.getDefaultDictionary()
+                    self.stats[guild.id][member.id] = self.getDefaultDictionary()
             # Check members
             else:
                 for member in guild.members:
-                    if not member.name in self.stats[guild.name].keys():
+                    if not member.id in self.stats[guild.id].keys():
                         print("Found new member, " + member.name + ", in " + guild.name)
-                        self.stats[guild.name][member.name] = self.getDefaultDictionary()
+                        self.stats[guild.id][member.id] = self.getDefaultDictionary()
         print("Completed new server and member check")
 
     async def createNewStatsFile(self):
         print("Initializing stats")
         for guild in self.bot.guilds:
-            guildName = guild.name
-            self.stats[guildName] = {}
-            print("Adding server: " + guildName)
+            self.stats[guild.id] = {}
+            print("Adding server: " + guild.name + " with id: " + guild.id)
 
             for member in guild.members:
                 print("Adding " + member.name + " to " + guild.name)
-                memberName = member.name
-                # don't record stats for our bot
-                # if memberName == self.bot.user.name:
-                #     continue
-                self.stats[guildName][memberName] = self.getDefaultDictionary()
+                self.stats[guild.id][member.id] = self.getDefaultDictionary()
 
         await self.writeToDisk()
         print("Completed initializing stats")
@@ -115,8 +110,8 @@ class StatsCog(commands.Cog, name="Stats"):
     async def statsFor(self, context, target):
         target = target.strip("<!@>")
         target = await commands.MemberConverter().convert(context, target)
-        targetStats = self.stats[target.guild.name][target.name]
-        stats = "Stats for **" + target.name + "**:\n"
+        targetStats = self.stats[target.guild.id][target.id]
+        stats = "Stats for **" + target.name + "**:" + "(id: " + target.id + ")\n"
         for key, value in targetStats.items():
             stats = stats + (key + ": **" + str(value)) + "**\n"
         await context.send(stats)
@@ -145,55 +140,52 @@ class StatsCog(commands.Cog, name="Stats"):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        memberName = message.author.name
-        guildName = message.author.guild.name
+        memberID = message.author.id
+        guildID = message.author.guild.id
 
         # last message
-        self.stats[guildName][memberName][self.LAST_MESSAGE] = datetime.now().strftime(self.TIME_FORMAT)
+        self.stats[guildID][memberID][self.LAST_MESSAGE] = datetime.now().strftime(self.TIME_FORMAT)
 
         # total
-        totalMessages = self.stats[guildName][memberName][self.TOTAL_MESSAGES] + 1
-        self.stats[guildName][memberName][self.TOTAL_MESSAGES] = totalMessages
+        totalMessages = self.stats[guildID][memberID][self.TOTAL_MESSAGES] + 1
+        self.stats[guildID][memberID][self.TOTAL_MESSAGES] = totalMessages
 
         # images
         if len(message.attachments) > 0:
-            totalImages = self.stats[guildName][memberName][self.IMAGE_MESSAGES] + 1
-            self.stats[guildName][memberName][self.IMAGE_MESSAGES] = totalImages
+            totalImages = self.stats[guildID][memberID][self.IMAGE_MESSAGES] + 1
+            self.stats[guildID][memberID][self.IMAGE_MESSAGES] = totalImages
 
         # text
         if len(message.content) > 0:
-            totalText = self.stats[guildName][memberName][self.TEXT_MESSAGES] + 1
-            self.stats[guildName][memberName][self.TEXT_MESSAGES] = totalText
+            totalText = self.stats[guildID][memberID][self.TEXT_MESSAGES] + 1
+            self.stats[guildID][memberID][self.TEXT_MESSAGES] = totalText
 
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
         print("New member named " + member.name + " joined the " + member.guild.name + " server")
-        if not member.name in self.stats[member.guild.name].keys():
+        if not member.id in self.stats[member.guild.id].keys():
             print("Added record for " + member.name + " in the " + member.guild.name + " server")
-            self.stats[member.guild.name][member.name] = self.getDefaultDictionary()
+            self.stats[member.guild.id][member.id] = self.getDefaultDictionary()
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         print("We've joined a new guild named " + guild.name)
-        if not member.name in self.stats[member.guild.name].keys():
+        if not member.id in self.stats[member.guild.id].keys():
             print("Added record for " + guild.name)
-            self.stats[guild.name] = {}
+            self.stats[guild.id] = {}
             for member in guild.members:
-                # don't record stats for our bot
-                # if memberName == self.bot.user.name:
-                #     continue
-                self.stats[guildName][member.name] = self.getDefaultDictionary()
+                self.stats[guild.id][member.id] = self.getDefaultDictionary()
 
     # other modules can access this
     async def setValueForKey(self, member, key, value):
         print("Setting " + key + " to " + str(value) + " for " + member.name + " in " + member.guild.name)
-        self.stats[member.guild.name][member.name][key] = value
+        self.stats[member.guild.id][member.id][key] = value
 
     # other modules can access this
     async def getValueForKey(self, member, key):
-        print("Getting " + key + " for " + member.name + " in " + member.guild.name + ": " + str(self.stats[member.guild.name][member.name][key]))
-        return self.stats[member.guild.name][member.name][key]
+        print("Getting " + key + " for " + member.name + " in " + member.guild.name + ": " + str(self.stats[member.guild.id][member.id][key]))
+        return self.stats[member.guild.id][member.id][key]
 
 
 def setup(bot):
