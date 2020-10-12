@@ -18,6 +18,8 @@ class SpiceCog(commands.Cog, name="Spice"):
 	champsThatHaveBeenWarned = []
 	champsToMute = []
 
+	verbose = True
+
 	def __init__(self, bot):
 		self.bot = bot
 		self.loadWordsFromDisk()
@@ -32,8 +34,6 @@ class SpiceCog(commands.Cog, name="Spice"):
 			reader = csv.reader(csvFile, delimiter=",")
 			for row in reader:
 				self.terribleWords = row
-
-	# Spicy meter
 
 	@commands.Cog.listener()
 	async def on_ready(self):
@@ -132,7 +132,7 @@ class SpiceCog(commands.Cog, name="Spice"):
 
 		# round the level so people can't swear once and achieve pepper status
 		# show the new level of someone's having a bad day
-		if round(levelToDisplay) >= 3 and round(levelToDisplay) <= 5 and not message.author in self.champsThatHaveBeenWarned:
+		if self.verbose and round(levelToDisplay) >= 3 and round(levelToDisplay) <= 5 and not message.author in self.champsThatHaveBeenWarned:
 			await message.channel.send(message.author.name + " spice level: " + self.spiceLevelToEmoji(levelToDisplay))
 
 		await self.checkToMuteChamps(message)
@@ -150,7 +150,7 @@ class SpiceCog(commands.Cog, name="Spice"):
 				if not champ in self.champsThatHaveBeenWarned:
 					self.champsThatHaveBeenWarned.append(champ)
 
-		if len(self.champsThatHaveBeenWarned) > lengthOfWarnings:
+		if self.verbose and len(self.champsThatHaveBeenWarned) > lengthOfWarnings:
 			messageToSend = "Type !yup to mute the current champs: "  + ", ".join(listOfChampNames)
 			await message.channel.send(messageToSend)
 
@@ -183,6 +183,36 @@ class SpiceCog(commands.Cog, name="Spice"):
 				self.spiceLevel = 0
 				self.spiceChamps = {}
 				self.spiceChampToMute = []
+
+	SET = "set"
+	VERBOSE = "verbose"
+	SILENT = "silent"
+
+	async def changeVerbosity(self, context, verbosityLevel):
+		if verbosityLevel == self.VERBOSE:
+			self.verbose = True
+			await context.send("Spice module: Verbose")
+		elif verbosityLevel == self.SILENT:
+			self.verbose = False
+			await context.send("Spice module: Silent")
+
+	functionMap = {
+		SET: changeVerbosity,
+	}
+
+	@commands.has_role("botmancer")
+	@commands.command(name="spice")
+	async def startBotCommand(self, context, *arguments):
+
+		if not len(arguments) == 2:
+			await context.send("Expected two arguments, but got " + str(len(arguments)))
+			return
+
+		commandName = arguments[0]
+		optionName = arguments[1]
+
+		function = self.functionMap[commandName]
+		await function(self, context, optionName)
 
 def setup(bot):
 	bot.add_cog(SpiceCog(bot))
