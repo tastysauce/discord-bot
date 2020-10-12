@@ -67,13 +67,10 @@ class StatsCog(commands.Cog, name="Stats"):
         # See if the bot is in guilds that we aren't tracking yet
         for guild in self.bot.guilds:
             # Add new guild
-            if not guild.name in self.stats.keys():
+            if not guild.id in self.stats.keys():
                 print("Found new guild: " + guild.name)
                 self.stats[guild.id] = self.getDefaultDictionary()
                 for member in guild.members:
-                    # don't record stats for our bot
-                    # if memberName == self.bot.user.name:
-                    #     continue
                     self.stats[guild.id][member.id] = self.getDefaultDictionary()
             # Check members
             else:
