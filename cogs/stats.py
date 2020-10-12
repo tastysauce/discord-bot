@@ -121,7 +121,6 @@ class StatsCog(commands.Cog, name="Stats"):
         FOR: statsFor
     }
 
-    @commands.has_role("botmancer")
     @commands.command(name="stats")
     async def startBotCommand(self, context, *arguments):
         commandName = arguments[0]
