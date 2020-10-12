@@ -29,39 +29,70 @@ class StatsCog(commands.Cog, name="Stats"):
         }
         return dictionary
 
-    def loadStats(self):
-        if os.path.isfile("stats.csv"):
-            with open('stats.csv', newline='') as csvFile:
-                self.stats = json.loads(csvFile.read())
-                print("Loaded stats for guilds: " + str(self.stats.keys()))
-        else:
-            self.initStats()
-
     @commands.Cog.listener()
     async def on_ready(self):
-        self.loadStats()
+        await self.initStats()
 
-    def initStats(self):
+    async def initStats(self):
+        if os.path.isfile("stats.csv"):
+            await self.loadExistingStats()
+            await self.checkForNewGuildsAndMembers()
+        else:            
+            await self.createNewStatsFile()
+
+    async def loadExistingStats(self):
+        with open('stats.csv', newline='') as csvFile:
+            self.stats = json.loads(csvFile.read())
+            print("Loaded stats for guilds: " + str(self.stats.keys()))
+
+    async def checkForNewGuildsAndMembers(self):
+        print("Checking for new servers or members")
+        # See if the bot is in guilds that we aren't tracking yet
+        for guild in self.bot.guilds:
+            # Add new guild
+            if not guild.name in self.stats.keys():
+                print("Found new guild: " + guild.name)
+                self.stats[guild.name] = self.getDefaultDictionary()
+                for member in guild.members:
+                    # don't record stats for our bot
+                    # if memberName == self.bot.user.name:
+                    #     continue
+                    self.stats[guild.name][member.name] = self.getDefaultDictionary()
+            # Check members
+            else:
+                for member in guild.members:
+                    if not member.name in self.stats[guild.name].keys():
+                        print("Found new member, " + member.name + ", in " + guild.name)
+                        self.stats[guild.name][member.name] = self.getDefaultDictionary()
+        print("Completed new server and member check")
+
+    async def createNewStatsFile(self):
         print("Initializing stats")
         for guild in self.bot.guilds:
             guildName = guild.name
             self.stats[guildName] = {}
+            print("Adding server: " + guildName)
 
             for member in guild.members:
+                print("Adding " + member.name + " to " + guild.name)
                 memberName = member.name
                 # don't record stats for our bot
                 # if memberName == self.bot.user.name:
                 #     continue
                 self.stats[guildName][memberName] = self.getDefaultDictionary()
 
-        print(self.stats.items())
+        await self.writeToDisk()
+        print("Completed initializing stats")
+
+    async def writeToDisk(self):
+        print("Writing stats to disk")
         csvFile = open("stats.csv","w+")
         csvFile.write(json.dumps(self.stats))
+        print("Completed writing stats to disk")
 
     async def flush(self, context):
         await context.send("Flushing stats to disk...")
-        csvFile = open("stats.csv","w+")
-        csvFile.write(json.dumps(self.stats))
+        self.writeToDisk()
         await context.send("Done flushing stats to stats.csv")
 
     async def get(self, context, target):
@@ -99,6 +130,27 @@ class StatsCog(commands.Cog, name="Stats"):
         guildName = message.author.guild.name
         totalMessages = self.stats[guildName][memberName][self.TOTAL_MESSAGES] + 1
         self.stats[guildName][memberName][self.TOTAL_MESSAGES] = totalMessages
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        print("New member named " + member.name + " joined the " + member.guild.name + " server")
+        if not member.name in self.stats[member.guild.name].keys():
+            print("Added record for " + member.name + " in the " + member.guild.name + " server")
+            self.stats[member.guild.name][member.name] = self.getDefaultDictionary()
+
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
+        print("We've joined a new guild named " + guild.name)
+        if not member.name in self.stats[member.guild.name].keys():
+            print("Added record for " + guild.name)
+            self.stats[guild.name] = {}
+            for member in guild.members:
+                memberName = member.name
+                # don't record stats for our bot
+                # if memberName == self.bot.user.name:
+                #     continue
+                self.stats[guildName][memberName] = self.getDefaultDictionary()
+
 
 def setup(bot):
     bot.add_cog(StatsCog(bot))
