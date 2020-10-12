@@ -4,6 +4,7 @@ import json
 import os
 from datetime import datetime
 from discord.ext import commands
+from discord.ext import tasks
 
 class StatsCog(commands.Cog, name="Stats"):
 
@@ -20,6 +21,7 @@ class StatsCog(commands.Cog, name="Stats"):
 
     def __init__(self, bot):
         self.bot = bot
+        self.flushStatsPeriodically.start()
         print("Initialized Stats")
 
 
@@ -34,6 +36,11 @@ class StatsCog(commands.Cog, name="Stats"):
             self.LAST_MESSAGE: "Not recorded"
         }
         return dictionary
+
+    @tasks.loop(seconds=600.0)
+    async def flushStatsPeriodically(self):
+        print("Flushing stats periodically (every 10 minutes)")
+        await self.writeToDisk()
 
     @commands.Cog.listener()
     async def on_ready(self):
