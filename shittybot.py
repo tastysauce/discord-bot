@@ -10,7 +10,8 @@ load_dotenv()
 extensions = [
 	"cogs.spice",
 	"cogs.voting",
-	"cogs.shittyCommands"
+	"cogs.shittyCommands",
+	"cogs.moduleControl"
 ]
 
 intents = discord.Intents.default()
