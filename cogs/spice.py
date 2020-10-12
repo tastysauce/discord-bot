@@ -18,7 +18,7 @@ class SpiceCog(commands.Cog, name="Spice"):
 	champsThatHaveBeenWarned = []
 	champsToMute = []
 
-	verbose = True
+	verbose = False
 
 	def __init__(self, bot):
 		self.bot = bot
@@ -85,7 +85,7 @@ class SpiceCog(commands.Cog, name="Spice"):
 		# if not message.channel.id == BOT_CHANNEL_ID:
 		# 	return
 
-		levelToDisplay = 0
+		levelToDisplay = -1
 
 		for badWord in self.badWords:
 			if badWord in message.content.split():
@@ -135,7 +135,18 @@ class SpiceCog(commands.Cog, name="Spice"):
 		if self.verbose and round(levelToDisplay) >= 3 and round(levelToDisplay) <= 5 and not message.author in self.champsThatHaveBeenWarned:
 			await message.channel.send(message.author.name + " spice level: " + self.spiceLevelToEmoji(levelToDisplay))
 
+		# only record if we set the value to something
+		if levelToDisplay > -1:
+			await self.recordSpiceStat(message.author, levelToDisplay)
 		await self.checkToMuteChamps(message)
+
+	async def recordSpiceStat(self, member, value):
+		# for cog in self.bot.cogs:
+		# 	self.bot.get_cog(cog)
+		# 	print(cog.title())
+		stats = self.bot.get_cog("Stats")
+		key = stats.HIGHEST_SPICE
+		await stats.setValueForKey(member, key, self.spiceLevelToEmoji(value))
 
 	async def checkToMuteChamps(self, message):
 

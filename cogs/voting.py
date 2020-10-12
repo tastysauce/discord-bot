@@ -72,6 +72,7 @@ class VotingCog(commands.Cog, name="Voting"):
 					if self.currentVotes[channel][key] == "yes":
 						yesVotes = yesVotes + 1
 				if yesVotes >= self.currentVotes[channel]["REQUIRED_TO_MUTE"]:
+					await self.recordTimesMuted(member)
 					await ctx.send("Muting " + member.name + " for 2 minutes")
 					await member.edit(mute=True)
 					mutedRole = discord.utils.get(member.guild.roles, name="muted")
@@ -84,6 +85,12 @@ class VotingCog(commands.Cog, name="Voting"):
 					await member.remove_roles(mutedRole)
 					await ctx.send(member.name + " is free again!")
 					currentVotes.pop(channel, None)
+
+	async def recordTimesMuted(self, member):
+		stats = self.bot.get_cog("Stats")
+		key = stats.TIMES_MUTED
+		value = await stats.getValueForKey(member, key) + 1
+		await stats.setValueForKey(member, key, value)
 
 def setup(bot):
 	bot.add_cog(VotingCog(bot))
