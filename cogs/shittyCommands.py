@@ -30,8 +30,6 @@ class ShittyCommands(commands.Cog, name="Shitty Commands"):
 
 		await ctx.send(ctx.author.name + ": Pick a # between 1 and 3")
 
-		# self.shittyMutesInProgress[ctx.author] = target
-
 		# Wait for response
 		def check(message: discord.Message):
 			return message.author == ctx.author and self.convertMessageToInt(message)

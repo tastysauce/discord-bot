@@ -186,7 +186,7 @@ class StatsCog(commands.Cog, name="Stats"):
 
     # other modules can access this
     async def getValueForKey(self, member, key):
-        print("Getting " + key + " for " + member.name + " in " + member.guild.name + ": " + str(self.stats[member.guild.id][member.id][key]))
+        print("Getting " + key + " for " + member.name + " in " + member.guild.name + ": " + str(self.stats[str(member.guild.id)][str(member.id)][key]))
         return self.stats[str(member.guild.id)][str(member.id)][key]
 
 
