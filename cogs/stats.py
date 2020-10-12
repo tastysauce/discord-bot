@@ -42,6 +42,11 @@ class StatsCog(commands.Cog, name="Stats"):
         print("Flushing stats periodically (every 10 minutes)")
         await self.writeToDisk()
 
+    @flushStatsPeriodically.before_loop
+    async def before_printer(self):
+        print('Waiting prior to flushing...')
+        await self.bot.wait_until_ready()
+
     @commands.Cog.listener()
     async def on_ready(self):
         await self.initStats()
