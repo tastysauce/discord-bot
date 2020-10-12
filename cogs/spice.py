@@ -146,7 +146,12 @@ class SpiceCog(commands.Cog, name="Spice"):
 		# 	print(cog.title())
 		stats = self.bot.get_cog("Stats")
 		key = stats.HIGHEST_SPICE
-		await stats.setValueForKey(member, key, self.spiceLevelToEmoji(value))
+		oldValue = await stats.getValueForKey(member, key)
+		# the value may be a string of peppers
+		if isinstance(oldValue, str):
+			oldValue = oldValue.count(emoji.demojize("🌶"))
+		if value > oldValue:
+			await stats.setValueForKey(member, key, self.spiceLevelToEmoji(value))
 
 	async def checkToMuteChamps(self, message):
 
