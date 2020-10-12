@@ -11,7 +11,8 @@ extensions = [
 	"cogs.spice",
 	"cogs.voting",
 	"cogs.shittyCommands",
-	"cogs.moduleControl"
+	"cogs.moduleControl",
+	"cogs.stats"
 ]
 
 intents = discord.Intents.default()
@@ -31,6 +32,7 @@ if __name__ == "__main__":
 
 @bot.event
 async def on_ready():
-	print(f"Logged in as: {bot.user.name} - {bot.user.id}\nVersion: {discord.__version__}\n")
+	print(f"Logged in as: {bot.user.name} - {bot.user.id} - {bot.user.name}\nVersion: {discord.__version__}\n")
 
+	
 bot.run(os.getenv("DISCORD_TOKEN"), bot=True, reconnect=True)
