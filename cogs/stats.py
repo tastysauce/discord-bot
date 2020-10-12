@@ -21,9 +21,6 @@ class StatsCog(commands.Cog, name="Stats"):
 
     def __init__(self, bot):
         self.bot = bot
-        self.flushStatsPeriodically.start()
-        print("Initialized Stats")
-
 
     def getDefaultDictionary(self):
         dictionary = { 
@@ -57,6 +54,8 @@ class StatsCog(commands.Cog, name="Stats"):
             await self.checkForNewGuildsAndMembers()
         else:            
             await self.createNewStatsFile()
+        print("Initialized Stats")
+        await self.flushStatsPeriodically.start()
 
     async def loadExistingStats(self):
         with open('stats.csv', newline='') as csvFile:
