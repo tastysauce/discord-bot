@@ -87,7 +87,7 @@ class StatsCog(commands.Cog, name="Stats"):
         print("Initializing stats")
         for guild in self.bot.guilds:
             self.stats[guild.id] = {}
-            print("Adding server: " + guild.name + " with id: " + str(guild.id)
+            print("Adding server: " + guild.name + " with id: " + str(guild.id))
 
             for member in guild.members:
                 print("Adding " + member.name + " to " + guild.name)
