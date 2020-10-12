@@ -44,13 +44,14 @@ class ShittyCommands(commands.Cog, name="Shitty Commands"):
 
 		if self.determineSuccess(int(guess.content)):
 			await ctx.send("Success! Timing out " + target.name + " for 1 minute")
+			await self.recordShittymuteSuccess(ctx.author)
 			await self.muteTarget(ctx, target)
 		else:
 			await ctx.send(ctx.author.name + " accidentally muted themself for a minute!")
 			await self.muteTarget(ctx, ctx.message.author)
 
-
 	async def muteTarget(self, ctx, target):
+		await self.recordTimesMuted(target)
 		mutedRole = discord.utils.get(target.guild.roles, name="muted")
 		await target.add_roles(mutedRole)
 		await asyncio.sleep(60)
@@ -67,6 +68,18 @@ class ShittyCommands(commands.Cog, name="Shitty Commands"):
 			return True
 		except ValueError:
 			return False
+
+	async def recordShittymuteSuccess(self, member):
+		stats = self.bot.get_cog("Stats")
+		key = stats.SHITTY_MUTES
+		value = await stats.getValueForKey(member, key) + 1
+		await stats.setValueForKey(member, key, value)
+
+	async def recordTimesMuted(self, member):
+		stats = self.bot.get_cog("Stats")
+		key = stats.TIMES_MUTED
+		value = await stats.getValueForKey(member, key) + 1
+		await stats.setValueForKey(member, key, value)
 		
 
 def setup(bot):
