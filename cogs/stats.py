@@ -111,7 +111,7 @@ class StatsCog(commands.Cog, name="Stats"):
         target = target.strip("<!@>")
         target = await commands.MemberConverter().convert(context, target)
         targetStats = self.stats[target.guild.id][target.id]
-        stats = "Stats for **" + target.name + "**:" + "(id: " + str(target.id) + ")\n"
+        stats = "Stats for **" + target.name + "**:" + " *(id: " + str(target.id) + ")*\n"
         for key, value in targetStats.items():
             stats = stats + (key + ": **" + str(value)) + "**\n"
         await context.send(stats)
