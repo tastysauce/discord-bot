@@ -119,12 +119,58 @@ class StatsCog(commands.Cog, name="Stats"):
             stats = stats + (key + ": **" + str(value)) + "**\n"
         await context.send(stats)
 
+    # Types
+    OVERALL_TYPE = "overall"
+    TEXT_TYPE = "text"
+    IMAGE_TYPE = "images"
+    SPICE_TYPE = "spice"
+    SHITTY_MUTES_TYPE = "shittymutes"
+    TIMES_MUTED_TYPE = "muted"
+    UNKNOWN_TYPE = "unknown"
+
+    typeToKeyMap = {
+        OVERALL_TYPE: TOTAL_MESSAGES,
+        TEXT_TYPE: TEXT_MESSAGES,
+        IMAGE_TYPE: IMAGE_MESSAGES,
+        SPICE_TYPE: HIGHEST_SPICE,
+        SHITTY_MUTES_TYPE: SHITTY_MUTES,
+        TIMES_MUTED_TYPE: TIMES_MUTED
+    }
+
+    async def listTop(self, context, inputType):
+        # Validate the input
+        sortKey = self.UNKNOWN_TYPE
+        if inputType in self.typeToKeyMap.keys():
+            sortKey = self.typeToKeyMap[inputType]
+        if sortKey == self.UNKNOWN_TYPE:
+            await context.send("Unrecognized type: " + inputType)
+            return
+
+        # Get list of all users and sort it
+        serverID = str(context.message.author.guild.id)
+        members = self.stats[serverID]
+        sortedMembers = []
+        if sortKey == self.HIGHEST_SPICE:
+            sortedMembers = sorted(members.items(), key=lambda x: str(x[1][sortKey]).count(emoji.demojize("🌶")), reverse=True)
+        else:
+            sortedMembers = sorted(members.items(), key=lambda x: x[1][sortKey], reverse=True)
+
+        message = "**" + sortKey + "**" + "\n"
+        for memberID, dictionary in sortedMembers:
+            member = await commands.MemberConverter().convert(context, memberID)
+            value = dictionary[sortKey]
+            message = message + member.name + ": " + str(value) + "\n"
+
+        await context.send(message)
+
     FLUSH = "flush"
     FOR = "for"
+    TOP = "top"
 
     functionMap = {
         FLUSH: flush,
-        FOR: statsFor
+        FOR: statsFor,
+        TOP: listTop
     }
 
     @commands.command(name="stats")
@@ -134,11 +180,12 @@ class StatsCog(commands.Cog, name="Stats"):
         if len(arguments) == 1:
             await function(self, context)
         elif len(arguments) == 2:
-            optionName = arguments[1]
-            await function(self, context, optionName)
+            secondArg = arguments[1]
+            await function(self, context, secondArg)
         elif len(arguments) == 3:
+            secondArg = arguments[1]
             thirdArg = arguments[2]
-            await function(self, context, thirdArg)
+            await function(self, context, secondArg, thirdArg)
 
     @commands.Cog.listener()
     async def on_message(self, message):
