@@ -52,7 +52,7 @@ class VotingCog(commands.Cog, name="Voting"):
 			await checkVotes(ctx)
 
 	@commands.command(name="no")
-	async def voteYes(self, ctx):
+	async def voteNo(self, ctx):
 
 		channel = ctx.author.voice.channel
 		if channel in self.currentVotes:
