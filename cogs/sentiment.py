@@ -1,12 +1,5 @@
 import discord
 from discord.ext import commands
-
-import re
-import csv
-import pprint
-import nltk.classify
-import pickle
-
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 class SentimentCog(commands.Cog, name="Sentiment"):
