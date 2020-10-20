@@ -12,7 +12,8 @@ extensions = [
 	"cogs.voting",
 	"cogs.shittyCommands",
 	"cogs.moduleControl",
-	"cogs.stats"
+	"cogs.stats",
+	"cogs.sentiment"
 ]
 
 intents = discord.Intents.default()
