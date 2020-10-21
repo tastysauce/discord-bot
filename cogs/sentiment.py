@@ -92,20 +92,20 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		await context.send(string)
 
 	def sentimentValueToString(self, sentimentValue):
-		if sentimentValue <= -0.8:
+		if sentimentValue <= -0.7:
 			return "alt f4 (" + str(sentimentValue) + ")"
-		elif sentimentValue > -0.8 and sentimentValue <= -0.5:
+		elif sentimentValue > -0.7 and sentimentValue <= -0.5:
 			return "mad (" + str(sentimentValue) + ")"
 		elif sentimentValue > -0.5 and sentimentValue < -0.05:
 			return "bleh (" + str(sentimentValue) + ")"
 		elif sentimentValue >= -0.05 and sentimentValue <= 0.05:
 			return "neutral (" + str(sentimentValue) + ")"
 		elif sentimentValue > 0.05 and sentimentValue <= 0.5:
+			return "good day (" + str(sentimentValue) + ")"
+		elif sentimentValue > 0.5 and sentimentValue <= 0.6:
 			return "great day (" + str(sentimentValue) + ")"
-		elif sentimentValue > 0.5 and sentimentValue <= 0.8:
+		elif sentimentValue > 0.6:
 			return "probably andy (" + str(sentimentValue) + ")"
-		elif sentimentValue > 0.8:
-			return "amazing day (" + str(sentimentValue) + ")"
 		else:
 			return "mike's a shitty coder and didn't handle this: " + str(sentimentValue)
 
