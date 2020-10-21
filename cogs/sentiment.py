@@ -50,6 +50,11 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		# key is Y-M-D 
 
 		userSentiment = await self.stats.getValueForKey(member, self.SENTIMENT)
+		# clear when this was an int
+		if type(userSentiment) is int
+			userSentiment = { }
+			print("Converting sentiment from int to fresh dictionary")
+		
 		if not todayKey in userSentiment.keys():
 			print(member.name + ": No value yet for key: " + todayKey)
 			userSentiment[todayKey] = [newSentiment]
