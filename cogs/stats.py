@@ -119,6 +119,8 @@ class StatsCog(commands.Cog, name="Stats"):
         targetStats = self.stats[str(target.guild.id)][str(target.id)]
         stats = "Stats for **" + target.name + "**:" + " *(id: " + str(target.id) + ")*\n"
         for key, value in targetStats.items():
+            if key == self.SENTIMENT:
+                continue
             stats = stats + (key + ": **" + str(value)) + "**\n"
         await context.send(stats)
 
@@ -152,7 +154,7 @@ class StatsCog(commands.Cog, name="Stats"):
         # Get list of all users and sort it
         serverID = str(context.message.author.guild.id)
         members = self.stats[serverID]
-        sortedMembers = []
+        sortedMembers = []        
         if sortKey == self.HIGHEST_SPICE:
             sortedMembers = sorted(members.items(), key=lambda x: str(x[1][sortKey]).count(emoji.demojize("🌶")), reverse=True)
         else:
@@ -231,7 +233,7 @@ class StatsCog(commands.Cog, name="Stats"):
 
     # other modules can access this
     async def setValueForKey(self, member, key, value):
-        print("Setting " + key + " to " + str(value) + " for " + member.name + " in " + member.guild.name)
+        print("Setting " + key + " for " + member.name + " in " + member.guild.name)
         self.stats[str(member.guild.id)][str(member.id)][key] = value
 
     # other modules can access this
@@ -240,7 +242,7 @@ class StatsCog(commands.Cog, name="Stats"):
         if not key in self.stats[str(member.guild.id)][str(member.id)].keys():
             self.stats[str(member.guild.id)][str(member.id)][key] = 0
 
-        print("Getting " + key + " for " + member.name + " in " + member.guild.name + ": " + str(self.stats[str(member.guild.id)][str(member.id)][key]))
+        print("Getting " + key + " for " + member.name + " in " + member.guild.name)
         return self.stats[str(member.guild.id)][str(member.id)][key]
 
 

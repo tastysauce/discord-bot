@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 
 class SentimentCog(commands.Cog, name="Sentiment"):
@@ -74,22 +74,52 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		string = "Sentiment for " + member.name + "\n"
 
 		# Compute today
+		string = string + await self.todayStatsFor(member, memberSentiment)
+		string = string + await self.weekStatsFor(member, memberSentiment)
+
+		await context.send(string)
+
+	async def todayStatsFor(self, member, memberSentiment):
 		today = datetime.now()
 		todayKey = today.strftime(self.TIME_FORMAT)
 		todaySentimentValues = memberSentiment[todayKey]
+		string = "Today: **No values yet**"
 		if len(todaySentimentValues) > 0:
 			todayTotal = 0
 			for record in todaySentimentValues:
 				todayTotal = todayTotal + record
 			todaySentiment = todayTotal / len(todaySentimentValues)
 			roundedSentiment = round(todaySentiment, 3)
-			string = string + "Today: " + "**" + self.sentimentValueToString(roundedSentiment) + "**"
+			string = "Today: " + "**" + self.sentimentValueToString(roundedSentiment) + "**\n"
+		return string
 
-		# Compute last seven days
-		# sevenDaysAgo = today - datetime.timedelta(days = 7)
+	async def weekStatsFor(self, member, memberSentiment):
+		today = datetime.now()
+		startOfWeek = today - timedelta(days=(today.weekday()+1) % 7)
 
+		# generate date keys until current day
+		keys = []
+		currentDate = startOfWeek
+		while currentDate <= today:
+			keys.append(currentDate.strftime(self.TIME_FORMAT))
+			currentDate = currentDate + timedelta(days=1)
 
-		await context.send(string)
+		sentimentValue = 0
+		sentimentValueCount = 0
+		memberSentimentKeys = memberSentiment.keys()
+		for key in keys:
+			if not key in memberSentimentKeys:
+				continue
+			dayArray = memberSentiment[key]
+			sentimentValueCount = sentimentValueCount + len(dayArray)
+			for value in dayArray:
+				sentimentValue = sentimentValue + value
+
+		weeklySentimentValue = sentimentValue / sentimentValueCount
+		roundedSentiment = round(weeklySentimentValue, 3)
+
+		string = "This week: " + "**" + self.sentimentValueToString(roundedSentiment) + "**\n"
+		return string
 
 	def sentimentValueToString(self, sentimentValue):
 		if sentimentValue <= -0.7:
