@@ -39,7 +39,7 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		if message.channel.id == 762411266860908574:
 			string = "{}\n{}".format(message.content, str(sentiment))
 			print(string)
-			await message.channel.send(string)
+			# await message.channel.send(string)
 		
 	async def storeSentiment(self, message, sentiment):
 
@@ -66,16 +66,70 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		userSentiment[todayKey] = todaysSentiment
 		await self.stats.setValueForKey(member, self.SENTIMENT, userSentiment)		
 
+	async def sentimentFor(self, context, member):
+		member = member.strip("<!@>")
+		member = await commands.MemberConverter().convert(context, member)
+		memberSentiment = await self.stats.getValueForKey(member, self.SENTIMENT)
+
+		string = "Sentiment for " + member.name + "\n"
+
+		# Compute today
+		today = datetime.now()
+		todayKey = today.strftime(self.TIME_FORMAT)
+		todaySentimentValues = memberSentiment[todayKey]
+		if len(todaySentimentValues) > 0:
+			todayTotal = 0
+			for record in todaySentimentValues:
+				todayTotal = todayTotal + record
+			todaySentiment = todayTotal / len(todaySentimentValues)
+			roundedSentiment = round(todaySentiment, 3)
+			string = string + "Today: " + "**" + self.sentimentValueToString(roundedSentiment) + "**"
+
+		# Compute last seven days
+		# sevenDaysAgo = today - datetime.timedelta(days = 7)
+
+
+		await context.send(string)
+
+	def sentimentValueToString(self, sentimentValue):
+		if sentimentValue <= -0.8:
+			return "alt f4 (" + str(sentimentValue) + ")"
+		elif sentimentValue > -0.8 and sentimentValue <= -0.5:
+			return "mad (" + str(sentimentValue) + ")"
+		elif sentimentValue > -0.5 and sentimentValue < -0.05:
+			return "bleh (" + str(sentimentValue) + ")"
+		elif sentimentValue >= -0.05 and sentimentValue <= 0.05:
+			return "neutral (" + str(sentimentValue) + ")"
+		elif sentimentValue > 0.05 and sentimentValue <= 0.5:
+			return "great day (" + str(sentimentValue) + ")"
+		elif sentimentValue > 0.5 and sentimentValue <= 0.8:
+			return "probably andy (" + str(sentimentValue) + ")"
+		elif sentimentValue > 0.8:
+			return "amazing day (" + str(sentimentValue) + ")"
+		else:
+			return "mike's a shitty coder and didn't handle this: " + str(sentimentValue)
+
+
+	FOR = "for"
+	TOP = "top"
+
+	functionMap = {
+		FOR: sentimentFor
+	}
+
 	@commands.command(name="sentiment")
-	async def getSentimentFor(self, context, target):
-		target = target.strip("<!@>")
-		target = await commands.MemberConverter().convert(context, target)
-		targetStats = await self.stats.getValueForKey(target, self.SENTIMENT)
-
-
-		# Yearly
-
-		await context.send(targetStats.items())
+	async def getSentimentFor(self, context, *arguments):
+		commandName = arguments[0]
+		function = self.functionMap[commandName]
+		if len(arguments) == 1:
+			await function(self, context)
+		elif len(arguments) == 2:
+			secondArg = arguments[1]
+			await function(self, context, secondArg)
+		elif len(arguments) == 3:
+			secondArg = arguments[1]
+			thirdArg = arguments[2]
+			await function(self, context, secondArg, thirdArg)
 
 
 
