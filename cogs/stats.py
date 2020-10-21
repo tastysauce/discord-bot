@@ -16,6 +16,7 @@ class StatsCog(commands.Cog, name="Stats"):
     SHITTY_MUTES = "Successful shittymutes"
     TIMES_MUTED = "Times muted"
     TIME_FORMAT = "%m/%d/%Y %H:%M:%S"
+    SENTIMENT = "Sentiment"
 
     stats = { }
 
@@ -23,16 +24,17 @@ class StatsCog(commands.Cog, name="Stats"):
         self.bot = bot
 
     def getDefaultDictionary(self):
-        dictionary = { 
+        defaultDictionary = { 
             self.TOTAL_MESSAGES: 0,
             self.TEXT_MESSAGES: 0,
             self.IMAGE_MESSAGES: 0,
             self.HIGHEST_SPICE: 0,
             self.SHITTY_MUTES: 0,
             self.TIMES_MUTED: 0,
-            self.LAST_MESSAGE: "Not recorded"
+            self.LAST_MESSAGE: "Not recorded",
+            self.SENTIMENT: {}
         }
-        return dictionary
+        return defaultDictionary
 
     @tasks.loop(seconds=600.0)
     async def flushStatsPeriodically(self):
@@ -54,6 +56,7 @@ class StatsCog(commands.Cog, name="Stats"):
             await self.checkForNewGuildsAndMembers()
         else:            
             await self.createNewStatsFile()
+
         print("Initialized Stats")
         await self.flushStatsPeriodically.start()
 
@@ -233,6 +236,10 @@ class StatsCog(commands.Cog, name="Stats"):
 
     # other modules can access this
     async def getValueForKey(self, member, key):
+        # Check that the key exists
+        if not key in self.stats[str(member.guild.id)][str(member.id)].keys():
+            self.stats[str(member.guild.id)][str(member.id)][key] = 0
+
         print("Getting " + key + " for " + member.name + " in " + member.guild.name + ": " + str(self.stats[str(member.guild.id)][str(member.id)][key]))
         return self.stats[str(member.guild.id)][str(member.id)][key]
 
