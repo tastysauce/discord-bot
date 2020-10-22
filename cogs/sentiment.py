@@ -196,7 +196,7 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		member = await commands.MemberConverter().convert(context, member)
 		memberSentiment = await self.stats.getValueForKey(member, self.SENTIMENT)
 
-		string = "Sentiment for " + member.name + "\n"
+		string = "Titles for " + member.name + "\n"
 
 		# Compute today
 		string = string + await self.todayStatsFor(member, memberSentiment)
@@ -252,20 +252,28 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		return string
 
 	def sentimentValueToString(self, sentimentValue):
-		if sentimentValue <= -0.7:
-			return "alt f4 (" + str(sentimentValue) + ")"
-		elif sentimentValue > -0.7 and sentimentValue <= -0.5:
-			return "mad (" + str(sentimentValue) + ")"
-		elif sentimentValue > -0.5 and sentimentValue < -0.05:
-			return "bleh (" + str(sentimentValue) + ")"
-		elif sentimentValue >= -0.05 and sentimentValue <= 0.05:
-			return "neutral (" + str(sentimentValue) + ")"
-		elif sentimentValue > 0.05 and sentimentValue <= 0.5:
-			return "good day (" + str(sentimentValue) + ")"
-		elif sentimentValue > 0.5 and sentimentValue <= 0.6:
-			return "great day (" + str(sentimentValue) + ")"
-		elif sentimentValue > 0.6:
-			return "probably andy (" + str(sentimentValue) + ")"
+		if sentimentValue < -0.3:
+			return "outcast (" + str(sentimentValue) + ")"
+		elif sentimentValue < -0.2 and sentimentValue >= -0.3:
+			return "despicable (" + str(sentimentValue) + ")"
+		elif sentimentValue < -0.1 and sentimentValue >= -0.2:
+			return "scoundrel (" + str(sentimentValue) + ")"
+		elif sentimentValue < -0.05 and sentimentValue >= -0.1:
+			return "unsavory (" + str(sentimentValue) + ")"
+		elif sentimentValue < -0.025 and sentimentValue >= -0.05:
+			return "rude (" + str(sentimentValue) + ")"
+		elif sentimentValue >= -0.025 and sentimentValue <= 0.025:
+			return "no title (" + str(sentimentValue) + ")"
+		elif sentimentValue > 0.025 and sentimentValue <= 0.05:
+			return "fair (" + str(sentimentValue) + ")"
+		elif sentimentValue > 0.05 and sentimentValue <= 0.1:
+			return "kind (" + str(sentimentValue) + ")"
+		elif sentimentValue > 0.1 and sentimentValue <= 0.2:
+			return "good (" + str(sentimentValue) + ")"
+		elif sentimentValue > 0.2 and sentimentValue <= 0.3:
+			return "famed (" + str(sentimentValue) + ")"
+		elif sentimentValue > 0.3:
+			return "glorious (" + str(sentimentValue) + ")"
 		else:
 			return "mike's a shitty coder and didn't handle this: " + str(sentimentValue)
 
@@ -279,7 +287,7 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		ARCHIVE: archiveAllSentimentCommand
 	}
 
-	@commands.command(name="sentiment")
+	@commands.command(name="title")
 	async def getSentimentFor(self, context, *arguments):
 		commandName = arguments[0]
 		function = self.functionMap[commandName]
