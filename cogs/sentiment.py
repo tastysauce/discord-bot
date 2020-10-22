@@ -199,17 +199,55 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		string = "Titles for " + member.name + "\n"
 
 		# Compute today
+		string = string + await self.recentSentimentFor(member, memberSentiment)
 		string = string + await self.todayStatsFor(member, memberSentiment)
 		string = string + await self.weekStatsFor(member, memberSentiment)
 
 		await context.send(string)
 
+	async def dumpSentimentFor(self, context, member):
+		member = member.strip("<!@>")
+		member = await commands.MemberConverter().convert(context, member)
+		memberSentiment = await self.stats.getValueForKey(member, self.SENTIMENT)
+
+		string = "Sentiment dump for " + member.name
+		print(string)
+		print(memberSentiment)
+		await context.send(string)
+		await context.send(memberSentiment)
+
+	async def recentSentimentFor(self, member, memberSentiment):
+		valuesToCheck = 30
+		valuesChecked = 0
+
+		today = datetime.now()
+		todayKey = today.strftime(self.TIME_FORMAT)
+		string = "Last 30 messages: **No values yet**\n"
+		if not todayKey in memberSentiment.keys():
+			return string
+
+		todaySentimentValues = memberSentiment[todayKey]
+		if len(todaySentimentValues) > 0:
+			todayTotal = 0
+			for record in reversed(todaySentimentValues):
+				if valuesChecked == valuesToCheck:
+					break
+				todayTotal = todayTotal + record
+				valuesChecked = valuesChecked + 1
+			todaySentiment = todayTotal / len(todaySentimentValues)
+			roundedSentiment = round(todaySentiment, 3)
+			string = "Last 30 messages: " + "**" + self.sentimentValueToString(roundedSentiment) + "**\n"
+		return string
 
 	async def todayStatsFor(self, member, memberSentiment):
 		today = datetime.now()
 		todayKey = today.strftime(self.TIME_FORMAT)
+
+		string = "Today: **No values yet**\n"
+		if not todayKey in memberSentiment.keys():
+			return string
+
 		todaySentimentValues = memberSentiment[todayKey]
-		string = "Today: **No values yet**"
 		if len(todaySentimentValues) > 0:
 			todayTotal = 0
 			for record in todaySentimentValues:
@@ -280,10 +318,12 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 	FOR = "for"
 	ARCHIVE = "archive"
 	TOP = "top"
+	DUMP = "dump"
 
 	functionMap = {
 		FOR: sentimentFor,
-		ARCHIVE: archiveAllSentimentCommand
+		ARCHIVE: archiveAllSentimentCommand,
+		DUMP: dumpSentimentFor
 	}
 
 	@commands.command(name="title")
