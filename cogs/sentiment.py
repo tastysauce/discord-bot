@@ -234,15 +234,19 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		sentimentValueCount = 0
 		memberSentimentKeys = memberSentiment.keys()
 		for key in keys:
+			print(key)
 			if not key in memberSentimentKeys:
 				continue
 			dayArray = memberSentiment[key]
 			sentimentValueCount = sentimentValueCount + len(dayArray)
+			weeklySentimentValue = 0
 			for value in dayArray:
-				sentimentValue = sentimentValue + value
+				weeklySentimentValue = weeklySentimentValue + value
+				print("adding value " + str(value))
+			weeklySentimentValue = weeklySentimentValue / sentimentValueCount
+			sentimentValue = sentimentValue + weeklySentimentValue
 
-		weeklySentimentValue = sentimentValue / sentimentValueCount
-		roundedSentiment = round(weeklySentimentValue, 3)
+		roundedSentiment = round(sentimentValue, 3)
 
 		string = "This week: " + "**" + self.sentimentValueToString(roundedSentiment) + "**\n"
 		return string
