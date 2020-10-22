@@ -162,7 +162,9 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 	@commands.has_role("botmancer")
 	@commands.command(name="archive")
 	async def archiveAllSentimentCommand(self, context):
+		context.send("Starting archive...")
 		await self.archiveAllSentiment()
+		context.send("Archive complete")
 		
 	async def storeSentiment(self, message, sentiment):
 
