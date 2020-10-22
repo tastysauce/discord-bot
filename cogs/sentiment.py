@@ -79,8 +79,8 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 					print("Found invalid sentiment data")
 					continue
 
-				print("##### OLD: ")
-				print(sentimentDictionary)
+				# print("##### OLD: ")
+				# print(sentimentDictionary)
 
 				sentimentKeys = sentimentDictionary.keys()
 				# Return early if we haven't stored anything
@@ -141,8 +141,8 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 					print(message)
 					return
 
-				print("##### NEW: ")
-				print(newSentimentDictionary)
+				# print("##### NEW: ")
+				# print(newSentimentDictionary)
 
 				await self.stats.setValueForKey(member, self.SENTIMENT, newSentimentDictionary)
 				message = message + " -- success"
@@ -242,7 +242,6 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 			weeklySentimentValue = 0
 			for value in dayArray:
 				weeklySentimentValue = weeklySentimentValue + value
-				print("adding value " + str(value))
 			weeklySentimentValue = weeklySentimentValue / sentimentValueCount
 			sentimentValue = sentimentValue + weeklySentimentValue
 
