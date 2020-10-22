@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from datetime import datetime, timedelta
-import pandas as pd
+from discord.ext import tasks
 
 class SentimentCog(commands.Cog, name="Sentiment"):
 
@@ -23,6 +23,17 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 	@commands.Cog.listener()
 	async def on_ready(self):
 		self.stats = self.bot.get_cog("Stats")
+		await self.archiveSentimentPeriodically.start()
+
+	@tasks.loop(seconds=86400.0)
+	async def archiveSentimentPeriodically(self):
+		print("Archiving sentiment periodically (every 24 hours)")
+		await self.archiveAllSentiment()
+
+	@archiveSentimentPeriodically.before_loop
+	async def before_printer(self):
+		print('Waiting prior to archiving...')
+		await self.bot.wait_until_ready()
 
 	@commands.Cog.listener()
 	async def on_message(self, message):
@@ -40,6 +51,120 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 			string = "{}\n{}".format(message.content, str(sentiment))
 			print(string)
 			# await message.channel.send(string)
+
+	async def archiveAllSentiment(self):
+		message = "Compression started..."
+		# await context.send(message)
+		print(message)
+		# This operation is performed for all members in all guilds
+		todayKey = datetime.now().strftime(self.TIME_FORMAT)
+		for guild in self.bot.guilds:
+			# For reporting stats later
+			recordsFound = 0
+			recordsCompressed = 0
+
+			guildIDString = str(guild.id)
+			message = "Looking for data to compress in " + guild.name + " (" + guildIDString+ ")"
+			# await context.send(message)
+			print(message)
+			for member in guild.members:
+				memberIDString = str(member.id)
+				message = "Fetching sentiment records for " + member.name + " (" + memberIDString+ ")"
+				# await context.send(message)
+				print(message)
+
+				sentimentDictionary = await self.stats.getValueForKey(member, self.SENTIMENT)
+				# Some old users have an int value for sentiment
+				if type(sentimentDictionary) is int:
+					print("Found invalid sentiment data")
+					continue
+
+				print("##### OLD: ")
+				print(sentimentDictionary)
+
+				sentimentKeys = sentimentDictionary.keys()
+				# Return early if we haven't stored anything
+				if len(sentimentKeys) == 0:
+					message = "No data stored for " + member.name + "... moving on"
+					print(message)
+					# await context.send(message)
+					continue
+
+				message = str(len(sentimentKeys)) + " days recorded. Checking for compressible data"
+				# await context.send(message)
+				print(message)
+
+				# new dictionary so that we don't write to something we're reading from
+				newSentimentDictionary = { }
+				for key in sentimentKeys:
+
+					dayArray = sentimentDictionary[key]
+					dayArrayLength = len(dayArray)
+
+					# keep track of stats
+					recordsFound = recordsFound + dayArrayLength
+
+					# Don't compress a day that's in progress but abord here so we still record stats
+					if key == todayKey:
+						newSentimentDictionary[key] = sentimentDictionary[key]
+						continue
+
+					# logging
+					message = "Found " + str(dayArrayLength) + " records on " + key
+
+					if dayArrayLength <= 1:
+						newSentimentDictionary[key] = sentimentDictionary[key]
+						message = message + ". Can't compress further"
+						# await context.send(message)
+						print(message)
+						continue
+
+					message = message + ". Compressing..."
+					# await context.send(message)
+					print(message)
+
+					# average the sentiment and store new array with single value
+					sentimentValue = 0
+					for record in dayArray:
+						recordsCompressed = recordsCompressed + 1
+						sentimentValue = sentimentValue + record
+					sentimentValue = sentimentValue / dayArrayLength
+					newSentimentDictionary[key] = [sentimentValue]
+
+				# sanity check
+				oldNumberOfDays = len(sentimentKeys)
+				newNumberOfDays = len(newSentimentDictionary.keys())
+				message = "Sanity checking...  old days: " + str(oldNumberOfDays) + " new days: " + str(newNumberOfDays)
+				if not oldNumberOfDays == newNumberOfDays:
+					message = message + " -- bad compression. Aborting."
+					# await context.send(message)
+					print(message)
+					return
+
+				print("##### NEW: ")
+				print(newSentimentDictionary)
+
+				await self.stats.setValueForKey(member, self.SENTIMENT, newSentimentDictionary)
+				message = message + " -- success"
+				# await context.send(message)
+				print(message)
+
+			message = "Found " + str(recordsFound) + " records and compressed " + str(recordsCompressed)
+			# await context.send(message)
+			print(message)
+
+		await self.stats.writeToDisk()
+
+
+
+	# We have a ton of sentiment data and it's taking up room in memory and disk
+	# We need to compress it
+	@commands.has_role("botmancer")
+	@commands.command(name="archive")
+	async def archiveAllSentimentCommand(self, context):
+		context.send("Starting archive...")
+		await self.archiveAllSentiment()
+		context.send("Archive complete")
 		
 	async def storeSentiment(self, message, sentiment):
 
@@ -78,6 +203,7 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		string = string + await self.weekStatsFor(member, memberSentiment)
 
 		await context.send(string)
+
 
 	async def todayStatsFor(self, member, memberSentiment):
 		today = datetime.now()
@@ -141,10 +267,12 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 
 
 	FOR = "for"
+	ARCHIVE = "archive"
 	TOP = "top"
 
 	functionMap = {
-		FOR: sentimentFor
+		FOR: sentimentFor,
+		ARCHIVE: archiveAllSentimentCommand
 	}
 
 	@commands.command(name="sentiment")
