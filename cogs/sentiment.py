@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from discord.ext import tasks
 
 class SentimentCog(commands.Cog, name="Sentiment"):
@@ -202,6 +203,8 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		string = string + await self.recentSentimentFor(member, memberSentiment)
 		string = string + await self.todayStatsFor(member, memberSentiment)
 		string = string + await self.weekStatsFor(member, memberSentiment)
+		string = string + await self.monthStatsFor(member, memberSentiment)
+		string = string + await self.previousMonthStatsFor(member, memberSentiment)
 
 		await context.send(string)
 
@@ -286,6 +289,69 @@ class SentimentCog(commands.Cog, name="Sentiment"):
 		roundedSentiment = round(sentimentValue, 3)
 
 		string = "This week: " + "**" + self.sentimentValueToString(roundedSentiment) + "**\n"
+		return string
+
+	async def monthStatsFor(self, member, memberSentiment):
+		today = datetime.now()
+		startOMonth = today.replace(day = 1)
+
+		# generate date keys until current day
+		keys = []
+		currentDate = startOMonth
+		while currentDate <= today:
+			keys.append(currentDate.strftime(self.TIME_FORMAT))
+			currentDate = currentDate + timedelta(days=1)
+
+		sentimentValue = 0
+		sentimentValueCount = 0
+		memberSentimentKeys = memberSentiment.keys()
+		for key in keys:
+			print(key)
+			if not key in memberSentimentKeys:
+				continue
+			dayArray = memberSentiment[key]
+			sentimentValueCount = sentimentValueCount + len(dayArray)
+			weeklySentimentValue = 0
+			for value in dayArray:
+				weeklySentimentValue = weeklySentimentValue + value
+			weeklySentimentValue = weeklySentimentValue / sentimentValueCount
+			sentimentValue = sentimentValue + weeklySentimentValue
+
+		roundedSentiment = round(sentimentValue, 3)
+
+		string = "This month: " + "**" + self.sentimentValueToString(roundedSentiment) + "**\n"
+		return string
+
+	async def previousMonthStatsFor(self, member, memberSentiment):
+		today = datetime.now()
+		startOfMonth = today.replace(day = 1)
+		lastMonth = startOfMonth - relativedelta(months=1)
+
+		# generate date keys until current day
+		keys = []
+		currentDate = lastMonth
+		while currentDate <= startOfMonth:
+			keys.append(currentDate.strftime(self.TIME_FORMAT))
+			currentDate = currentDate + timedelta(days=1)
+
+		sentimentValue = 0
+		sentimentValueCount = 0
+		memberSentimentKeys = memberSentiment.keys()
+		for key in keys:
+			print(key)
+			if not key in memberSentimentKeys:
+				continue
+			dayArray = memberSentiment[key]
+			sentimentValueCount = sentimentValueCount + len(dayArray)
+			weeklySentimentValue = 0
+			for value in dayArray:
+				weeklySentimentValue = weeklySentimentValue + value
+			weeklySentimentValue = weeklySentimentValue / sentimentValueCount
+			sentimentValue = sentimentValue + weeklySentimentValue
+
+		roundedSentiment = round(sentimentValue, 3)
+
+		string = "Last month: " + "**" + self.sentimentValueToString(roundedSentiment) + "**\n"
 		return string
 
 	def sentimentValueToString(self, sentimentValue):
