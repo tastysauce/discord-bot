@@ -162,9 +162,12 @@ class StatsCog(commands.Cog, name="Stats"):
 
         message = "**" + sortKey + "**" + "\n"
         for memberID, dictionary in sortedMembers:
-            member = await commands.MemberConverter().convert(context, memberID)
-            value = dictionary[sortKey]
-            message = message + member.name + ": " + str(value) + "\n"
+            try:
+                member = await commands.MemberConverter().convert(context, memberID)
+                value = dictionary[sortKey]
+                message = message + member.name + ": " + str(value) + "\n"
+            except Exception:
+                pass
 
         await context.send(message)
 
