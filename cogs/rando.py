@@ -9,8 +9,8 @@ class RandoCog(commands.Cog, name="Rando"):
 		print("Initialized Rando")
 
 	@commands.Cog.listener()
-    async def on_member_join(self, member):
-    	randoRole = discord.utils.get(member.guild.roles, name="rando")
+	async def on_member_join(self, member):
+		randoRole = discord.utils.get(member.guild.roles, name="rando")
 		await member.add_roles(randoRole)
 
 def setup(bot):
